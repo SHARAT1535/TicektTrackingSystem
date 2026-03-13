@@ -69,7 +69,7 @@ func FetchTickets(ctx context.Context, userId int) []Ticket {
 		 FROM tickets t 
 		 JOIN users u ON t.user_id = u.id 
 		 WHERE t.user_id = ?
-		 ORDER BY t.id DESC`,
+		 ORDER BY t.id ASC`,
 		userId,
 	)
 	if err != nil {
@@ -166,7 +166,7 @@ func FetchTicketsByDepartment(deptId string, priorityFilter string) []Ticket {
 		args = append(args, priorityFilter)
 	}
 
-	query += " ORDER BY t.id DESC"
+	query += " ORDER BY t.id ASC"
 
 	rows, err := Db.Query(query, args...)
 	if err != nil {
