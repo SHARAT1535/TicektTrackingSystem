@@ -53,6 +53,19 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = JSON.parse(savedUser);
         showDashboard();
     }
+
+    // Added listener for Admin User Search (moved inside DOMContentLoaded)
+    const adminSearchUser = document.getElementById('admin-search-user');
+    if (adminSearchUser) {
+        let debounceTimer;
+        adminSearchUser.addEventListener('input', () => {
+            console.log("Admin search input changed:", adminSearchUser.value);
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                loadAllTicketsAdmin();
+            }, 300); // reduced to 300ms for snappier feel
+        });
+    }
 });
 
 
@@ -422,10 +435,15 @@ async function loadAllTicketsAdmin() {
 
     try {
         const sortBy = document.getElementById('admin-sort-by') ? document.getElementById('admin-sort-by').value : '';
+        const usernameSearch = document.getElementById('admin-search-user') ? document.getElementById('admin-search-user').value : '';
+        
+        console.log("Loading tickets with filters:", { sortBy, usernameSearch });
+
         const queryParams = new URLSearchParams({
             is_super_admin: currentUser.isSuperAdmin,
             department_id: currentUser.departmentId || '',
-            sort_by: sortBy
+            sort_by: sortBy,
+            username: usernameSearch
         });
 
         const response = await fetch(`${API_URL}/viewAllTickets?${queryParams}`);
@@ -437,7 +455,7 @@ async function loadAllTicketsAdmin() {
             adminTicketsList.innerHTML = `
                 <div class="empty-state">
                     <i class="ri-inbox-2-line"></i>
-                    <p>No tickets in the system yet.</p>
+                    <p>No tickets found matching your criteria.</p>
                 </div>`;
             adminTotalTicketsEl.textContent = '0';
             return;
@@ -583,3 +601,4 @@ if (adminSortSelect) {
         loadAllTicketsAdmin();
     });
 }
+

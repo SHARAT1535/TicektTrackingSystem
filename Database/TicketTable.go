@@ -103,20 +103,28 @@ func FetchTickets(ctx context.Context, userId int) []Ticket {
 	return tickets
 }
 
-// Fetches all tickets from database for admins
-func FetchAllTickets(priorityFilter string) []Ticket {
+// Fetches all tickets from database for admins with optional username and priority filters
+func FetchAllTickets(priorityFilter string, usernameFilter string) []Ticket {
 	query := `SELECT t.id, t.department_id, t.description, t.user_id, t.status, u.username, t.priority 
 			 FROM tickets t 
-			 JOIN users u ON t.user_id = u.id`
+			 JOIN users u ON t.user_id = u.id 
+			 WHERE 1=1`
 
 	var args []interface{}
 
+	if usernameFilter != "" {
+		query += " AND u.username LIKE ?"
+		args = append(args, "%"+usernameFilter+"%")
+	}
+
 	if priorityFilter == "High" || priorityFilter == "Medium" || priorityFilter == "Low" {
-		query += " WHERE t.priority = ?"
+		query += " AND t.priority = ?"
 		args = append(args, priorityFilter)
 	}
 
 	query += " ORDER BY t.id DESC"
+
+	log.Printf("Executing FetchAllTickets: query=%s, args=%v", query, args)
 
 	rows, err := Db.Query(query, args...)
 	if err != nil {
@@ -151,8 +159,8 @@ func FetchAllTickets(priorityFilter string) []Ticket {
 	return tickets
 }
 
-// Fetches tickets specific to a department
-func FetchTicketsByDepartment(deptId string, priorityFilter string) []Ticket {
+// Fetches tickets specific to a department with optional username and priority filters
+func FetchTicketsByDepartment(deptId string, priorityFilter string, usernameFilter string) []Ticket {
 	query := `SELECT t.id, t.department_id, t.description, t.user_id, t.status, u.username, t.priority 
 		 FROM tickets t 
 		 JOIN users u ON t.user_id = u.id 
@@ -160,6 +168,11 @@ func FetchTicketsByDepartment(deptId string, priorityFilter string) []Ticket {
 
 	var args []interface{}
 	args = append(args, deptId)
+
+	if usernameFilter != "" {
+		query += " AND u.username LIKE ?"
+		args = append(args, "%"+usernameFilter+"%")
+	}
 
 	if priorityFilter == "High" || priorityFilter == "Medium" || priorityFilter == "Low" {
 		query += " AND t.priority = ?"

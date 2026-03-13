@@ -3,6 +3,7 @@ package admin
 import (
 	database "Ticket_Rising_Backend/Database"
 	"encoding/json"
+	"log"
 	"net/http"
 )
 
@@ -64,13 +65,16 @@ func ViewAllTickets(w http.ResponseWriter, r *http.Request) {
 	isSuperAdmin := r.URL.Query().Get("is_super_admin")
 	departmentId := r.URL.Query().Get("department_id")
 	sortBy := r.URL.Query().Get("sort_by")
+	username := r.URL.Query().Get("username")
+
+	log.Printf("ViewAllTickets requested: isSuperAdmin=%s, deptId=%s, sortBy=%s, username=%s", isSuperAdmin, departmentId, sortBy, username)
 
 	var tickets []database.Ticket
 
 	if isSuperAdmin == "true" {
-		tickets = database.FetchAllTickets(sortBy)
+		tickets = database.FetchAllTickets(sortBy, username)
 	} else {
-		tickets = database.FetchTicketsByDepartment(departmentId, sortBy)
+		tickets = database.FetchTicketsByDepartment(departmentId, sortBy, username)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
